@@ -21,12 +21,17 @@ router.route('/', async (req, res) => {
             headers: new Headers(req.headers),
             body: payload,
         });
+        console.log("1. Webhook route reached");
+
 
         // throws if the signature is wrong or the body was tampered with; only then do we trust evt.
         const evt = await verifyWebhook(request, { signingSecret });
+        console.log("2. Webhook verified:", evt.type);
 
         if (evt.type === "user.created" || evt.type === "user.updated") {
+            console.log("3. User event");
             const u = evt.data;
+            console.log("4. Clerk ID:", u.id);
 
             const email =
                 u.email_addresses?.find((e) => e.id === u.primary_email_address_id)?.email_address ??
@@ -40,6 +45,7 @@ router.route('/', async (req, res) => {
                 { clerkId: u.id, email, fullName, profilePic: u.image_url },
                 { new: true, upsert: true, setDefaultsOnInsert: true },
             );
+            console.log("5. Saved to MongoDB");
         }
 
         if (evt.type === "user.deleted") {
