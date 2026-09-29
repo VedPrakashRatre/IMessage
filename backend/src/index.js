@@ -8,6 +8,7 @@ import { clerkMiddleware } from '@clerk/express'
 import cors from "cors"
 import job from "./libs/cron.js"
 import clerkWebhook from "./webhooks/clerk.webhook.js"
+import authRoutes from "./routes/auth.route.js"
 
 import fs from "fs";
 import path from "path";
@@ -30,6 +31,7 @@ app.use(clerkMiddleware())
 app.get('/heath', (req, res) => {
     res.send('hello world')
 })
+app.get('/api/auth' , authRoutes);
 
 //if the public directly exist,serve the static file
 //this is for the production build
