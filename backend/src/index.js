@@ -6,6 +6,7 @@ import { connectDB } from './libs/db.js';
 import User from "./models/User.js"
 import { clerkMiddleware } from '@clerk/express'
 import cors from "cors"
+import job from "./libs/cron.js"
 
 import fs from "fs";
 import path from "path";
