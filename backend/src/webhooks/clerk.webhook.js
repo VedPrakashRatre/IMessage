@@ -56,3 +56,5 @@ router.route('/', async (req, res) => {
 
 
 })
+
+export default router;
