@@ -26,9 +26,7 @@ app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(clerkMiddleware())
 
-app.get('/' , (req,res)=>{
-    res.send("home page");
-})
+
 app.get('/heath', (req, res) => {
     res.send('hello world')
 })
