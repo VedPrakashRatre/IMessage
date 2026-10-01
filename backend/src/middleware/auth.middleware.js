@@ -13,7 +13,7 @@ export async function protectAuth(req,res,next) {
             res.status(404).json({message:"User not found"});
             return;
         }
-        req.user = user;
+        req.user = user; // we parse this so that everybody in our backend have access to it.
         next();
     } catch (error) {
         console.error("Error in portectRoute middleware :", error.message);

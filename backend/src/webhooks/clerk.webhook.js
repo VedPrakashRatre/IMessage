@@ -4,8 +4,6 @@ import { verifyWebhook } from "@clerk/backend/webhooks"
 
 const router = express.Router();
 
-
-
 router.post('/', async (req, res) => {
     try {
         console.log("inside router")

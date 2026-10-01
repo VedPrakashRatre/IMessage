@@ -9,6 +9,7 @@ import cors from "cors"
 import job from "./libs/cron.js"
 import clerkWebhook from "./webhooks/clerk.webhook.js"
 import authRoutes from "./routes/auth.route.js"
+import messageRoutes from "./routes/message.route.js"
 
 import fs from "fs";
 import path from "path";
@@ -32,6 +33,7 @@ app.get('/heath', (req, res) => {
     res.send('hello world')
 })
 app.get('/api/auth' , authRoutes);
+app.get('/api/messages' , messageRoutes);
 
 //if the public directly exist,serve the static file
 //this is for the production build
