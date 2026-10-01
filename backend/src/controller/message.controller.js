@@ -1,6 +1,8 @@
 import  User  from "../models/User.js";
 import Message from "../models/Message.js"
 import hasImageKitConfig from "../libs/imagekit.js";
+import {getReceiverSocketId} from "../libs/socket.js";
+
 
 export async function getUsersForSidebar(req,res){
     try {
@@ -85,6 +87,14 @@ export async function sendMessages(req,res) {
             video:videoUrl,
         });
         await newMessage.save();
+
+        const receiverSocketId = getReceiverSocketId(receiverId);
+
+        //only send the message to the user if they are online
+        if(receiverSocketId){
+            io.to(receiverSocketId).emit("newMessage" , newMessage);
+        }
+
         res.status(201).json(newMessage); 
     } catch (error) {
         console.error("Error in sendMessages : " , error.message);
