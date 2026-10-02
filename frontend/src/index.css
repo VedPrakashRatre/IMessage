@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@import "@heroui/styles"; 
-@import "./styles/heroui-themes-presets.css"
+@import "@heroui/styles";
+@import "./styles/heroui-themes-presets.css";
 
 /* HeroUI's dark fallback uses prefers-color-scheme but forgot [data-theme="light"], so OS dark +
    app light still applied dark: utilities. Re-define so explicit light theme wins system dark. */
