@@ -1,11 +1,16 @@
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
-const FRONTEND_URL = process.env.FRONTEND_URL;
+const FRONTEND_URL = (process.env.FRONTEND_URL || "").replace(/[;\s]+$/g, "").trim();
 const app = express();
 const server = http.createServer(app);
 
-const io = new Server(server, { cors: { origin: [FRONTEND_URL] } });
+// When FRONTEND_URL is not set (e.g. the production monolith where the page and
+// API live on the same origin), allow any origin instead of blocking everything
+// with `origin: [undefined]`.
+const corsOrigin = FRONTEND_URL ? [FRONTEND_URL] : true;
+
+const io = new Server(server, { cors: { origin: corsOrigin } });
 
 export const getReceiverSocketId = (userId) => {
     return userSocketMap[userId];
@@ -28,4 +33,5 @@ io.on('connection', (socket) => {
     });
 });
 
+export { io };
 export default { app ,io, server};

@@ -1,7 +1,7 @@
 import  User  from "../models/User.js";
 import Message from "../models/Message.js"
-import hasImageKitConfig from "../libs/imagekit.js";
-import {getReceiverSocketId} from "../libs/socket.js";
+import { hasImageKitConfig, uploadChatMedia } from "../libs/imagekit.js";
+import { getReceiverSocketId, io } from "../libs/socket.js";
 
 
 export async function getUsersForSidebar(req,res){
@@ -21,20 +21,26 @@ export async function getConversationsForSidebar(req,res) {
         const loggedUserId = req.user._id;
 
       const conversation = await Message.aggregate([
-        { $match: {$or :[{ senderId:loggedInUserId} , { receiverId:loggedInUserId }]}},
+        { $match: {$or :[{ senderId:loggedUserId} , { receiverId:loggedUserId }]}},
 
-        {$group: {_id:{$cond:[{$ep: ["senderId" , loggedInUserId]} , "receiverId" , "$senderId" ]},
+        // $cond was using an invalid operator ($ep) and the $lookup pointed at a
+        // non-existent "start" collection; both are fixed here.
+        {$group: {_id:{$cond:[{$eq: ["$senderId" , loggedUserId]} , "$receiverId" , "$senderId" ]},
         lastMessageAt:{$max : "$createdAt"},
         },
     },
      {$sort: {lastMessageAt: -1 }},
 
-     {$lookup : {from: "start" , localField: "_id" , foreignField: "_id" , as: "user"}},
+     {$lookup : {from: "users" , localField: "_id" , foreignField: "_id" , as: "user"}},
+
+     // Skip conversations whose peer user no longer exists (e.g. deleted by the Clerk webhook),
+     // otherwise $replaceRoot would crash on an empty $first.
+     {$match : {"user.0" : {$exists: true}}},
 
      {$replaceRoot: {newRoot :{$first : "$user"}}},
 
      {$project : {clerkId : 0}},
-      ])
+       ])
       res.status(200).json(conversation);
     } catch (error) {
         console.error("Error in getConversationsForSidebar : " , error.message);
@@ -69,15 +75,25 @@ export async function sendMessages(req,res) {
         const {id:receiverId} = req.params;
         const senderId = req.user._id;
 
+        // A message needs either text or a media file (text-only messages sent
+        // FormData-free JSON, so req.file is undefined in that case).
+        if(!text && !req.file){
+            return res.status(400).json({message: "Message content is required"});
+        }
+
+        if(req.file && !hasImageKitConfig()){
+            return res.status(400).json({message: "ImageKit configuration is missing"});
+        }
+
         let imageUrl;
         let videoUrl;
 
-        if(!hasImageKitConfig()){
-            return res.status(400).json({message: "ImageKit configuration is missing"});
+        // Only upload when a file was actually sent.
+        if(req.file){
+            const url = await uploadChatMedia(req.file)
+            if(req.file.mimetype.startsWith("video/")) videoUrl = url;
+            else imageUrl = url;
         }
-       const url = await uploadChatMedia(req.file)
-       if(req.file.memetype.startWith("video/")) videoUrl = url;
-         else imageUrl = url;
 
         const newMessage = new Message({
             senderId,

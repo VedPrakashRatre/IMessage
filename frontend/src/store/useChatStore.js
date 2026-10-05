@@ -26,10 +26,13 @@ export const useChatStore = create(
         set({ isUsersLoading: true });
         try {
           const res = await axiosInstance.get("/messages/users");
+          // Guard against non-array payloads (e.g. an HTML page returned with a
+          // 200 status would otherwise crash the sidebar render).
+          const users = Array.isArray(res.data) ? res.data : [];
           set((state) => ({
-            users: res.data,
+            users,
             selectedUser:
-              state.selectedUser && res.data.some((user) => user._id === state.selectedUser._id)
+              state.selectedUser && users.some((user) => user._id === state.selectedUser._id)
                 ? state.selectedUser
                 : null,
           }));
@@ -44,7 +47,7 @@ export const useChatStore = create(
         set({ isConversationsLoading: true });
         try {
           const res = await axiosInstance.get("/messages/conversations");
-          set({ conversations: res.data });
+          set({ conversations: Array.isArray(res.data) ? res.data : [] });
         } catch (error) {
           console.log("Error in getConversations", error.message);
         } finally {
@@ -57,7 +60,7 @@ export const useChatStore = create(
         set({ isMessagesLoading: true });
         try {
           const res = await axiosInstance.get(`/messages/${userId}`);
-          set({ messages: res.data });
+          set({ messages: Array.isArray(res.data) ? res.data : [] });
         } catch (error) {
           toast.error(error.response?.data?.message || "Failed to load messages");
         } finally {

@@ -15,6 +15,11 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const res = await axiosInstance.get("/auth/check");
+      // A 200 response that is not an object (e.g. an HTML page) means the API
+      // is misrouted; treat it as a failed auth check instead of storing it.
+      if (!res.data || typeof res.data !== "object" || !res.data._id) {
+        throw new Error("Invalid /auth/check response");
+      }
       set({ authUser: res.data });
 
       get().connectSocket(res.data);

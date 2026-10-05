@@ -6,7 +6,7 @@ import https from "node:https";
 const job = new CronJob("*/14 * * * *", function () {
   const base = process.env.FRONTEND_URL;
   if (!base) return;
-  const url = new URL("/heath", base).href;
+  const url = new URL("/health", base).href;
   const client = url.startsWith("https:") ? https : http;
 
   client

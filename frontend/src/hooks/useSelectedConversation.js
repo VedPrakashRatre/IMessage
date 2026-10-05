@@ -5,7 +5,7 @@ import { useAuthStore } from "../store/useAuthStore";
 
 // John Doe -> JD
 export function getInitials(name) {
-  return name
+  return String(name ?? "")
     .split(" ")
     .filter(Boolean)
     .map((namePart) => namePart[0])
